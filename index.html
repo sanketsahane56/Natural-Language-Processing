@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Summarization Using Transformer Models | BART, T5 & TextRank</title>
+  <meta name="description" content="AI Text Summarization Studio featuring pretrained BART, T5, and TextRank models with ROUGE-1, ROUGE-2, and ROUGE-L metrics evaluation.">
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN for Model Performance Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-wrap">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-title">NeuralSummarize AI</div>
+          <div class="brand-sub">Transformer-Based NLP Summarization Studio</div>
+        </div>
+      </div>
+      <div class="nav-badges">
+        <span class="badge badge-tech">BART • T5 • TextRank</span>
+        <span class="badge badge-status" id="backendStatusBadge">
+          <span class="status-dot"></span>
+          <span id="backendStatusText">Backend Active</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-wrapper">
+
+    <!-- Hero / Project Info Banner -->
+    <section class="page-banner">
+      <div class="banner-content">
+        <h1>Text Summarization Using Transformer Models</h1>
+        <p>
+          Comparative study and demonstration of <b>Abstractive Summarization</b> (BART & T5 Sequence-to-Sequence Transformers) 
+          and <b>Extractive Summarization</b> (Graph-based TextRank) evaluated with <b>ROUGE-1, ROUGE-2, and ROUGE-L</b> metrics.
+        </p>
+      </div>
+      <div class="banner-stats">
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">NLP Models</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">ROUGE</div>
+          <div class="stat-label">1, 2, L Eval</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">PyTorch</div>
+          <div class="stat-label">Transformers</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <div class="app-grid">
+
+      <!-- LEFT COLUMN: Input, Model Selection & Controls -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <div>
+              <h2 class="card-title">Input Text & Configuration</h2>
+              <p class="card-subtitle">Choose a transformer model, upload or paste text</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Selection -->
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label">1. Select Summarization Model</label>
+          </div>
+          <div class="model-selector-grid">
+            <!-- BART Option -->
+            <div>
+              <input type="radio" id="model-bart" name="nlp_model" value="bart" class="model-card-radio" checked>
+              <label for="model-bart" class="model-card-label">
+                <span class="model-badge badge-bart">Abstractive</span>
+                <span class="model-name">BART CNN</span>
+                <span class="model-desc">Bidirectional & Auto-Regressive Transformer fine-tuned on CNN/DailyMail.</span>
+              </label>
+            </div>
+
+            <!-- T5 Option -->
+            <div>
+              <input type="radio" id="model-t5" name="nlp_model" value="t5" class="model-card-radio">
+              <label for="model-t5" class="model-card-label">
+                <span class="model-badge badge-t5">Abstractive</span>
+                <span class="model-name">T5 Transformer</span>
+                <span class="model-desc">Text-to-Text Transfer Transformer trained on multi-task objectives.</span>
+              </label>
+            </div>
+
+            <!-- TextRank Option -->
+            <div>
+              <input type="radio" id="model-textrank" name="nlp_model" value="textrank" class="model-card-radio">
+              <label for="model-textrank" class="model-card-label">
+                <span class="model-badge badge-extractive">Extractive</span>
+                <span class="model-name">TextRank Graph</span>
+                <span class="model-desc">Cosine similarity and PageRank algorithm selecting salient sentences.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Upload Dropzone -->
+        <div class="file-dropzone" id="fileDropzone">
+          <input type="file" id="fileInput" accept=".txt,.md">
+          <div class="file-zone-content">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <div class="file-zone-text"><b>Click to upload</b> or drag and drop a text file (.txt, .md)</div>
+            <div class="file-zone-sub">Automatic text extraction into input box</div>
+          </div>
+        </div>
+
+        <!-- Text Input Area -->
+        <div class="form-group">
+          <div class="form-label-row">
+            <label for="inputText" class="form-label">2. Document Content</label>
+            <div class="sample-chips">
+              <button type="button" class="sample-btn" onclick="loadSample('cnn')">📰 CNN Article</button>
+              <button type="button" class="sample-btn" onclick="loadSample('ai_research')">🔬 AI Research</button>
+              <button type="button" class="sample-btn" onclick="loadSample('health')">🩺 Health News</button>
+            </div>
+          </div>
+          <textarea id="inputText" class="custom-textarea" placeholder="Paste your article, report, or text here (minimum 2-3 sentences recommended for effective summarization)..."></textarea>
+          <div class="textarea-footer">
+            <span>Words: <b id="inputWordCount">0</b> | Characters: <b id="inputCharCount">0</b></span>
+            <button type="button" class="sample-btn" onclick="clearInput()">Clear</button>
+          </div>
+        </div>
+
+        <!-- Length Parameters -->
+        <div class="params-grid">
+          <div class="param-item">
+            <div class="param-header">
+              <span>Min Length</span>
+              <span class="param-val" id="minLenVal">35 words</span>
+            </div>
+            <input type="range" id="minLenSlider" min="15" max="120" value="35" step="5" oninput="updateParamLabels()">
+          </div>
+          <div class="param-item">
+            <div class="param-header">
+              <span>Max Length</span>
+              <span class="param-val" id="maxLenVal">120 words</span>
+            </div>
+            <input type="range" id="maxLenSlider" min="40" max="300" value="120" step="10" oninput="updateParamLabels()">
+          </div>
+        </div>
+
+        <!-- Reference Summary Section (ROUGE Ground Truth) -->
+        <div class="reference-card">
+          <div class="reference-header" onclick="toggleReferenceBody()">
+            <div class="reference-title-tag">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Reference (Ground Truth) Summary for ROUGE Evaluation</span>
+            </div>
+            <span class="toggle-icon" id="refToggleIcon">▼</span>
+          </div>
+          <div class="reference-body" id="referenceBody">
+            <div class="info-note">
+              <b>Important Concept:</b> ROUGE (Recall-Oriented Understudy for Gisting Evaluation) calculates 
+              how many n-grams in the machine summary match a human gold-standard <b>reference summary</b>. 
+              If left blank, summary generation succeeds normally, but ROUGE metric calculation is skipped.
+            </div>
+            <textarea id="referenceText" class="custom-textarea" style="min-height: 85px;" placeholder="Optional: Paste reference/human gold summary here to calculate ROUGE-1, ROUGE-2, and ROUGE-L precision, recall & F1 scores..."></textarea>
+            <div class="textarea-footer">
+              <span>Reference Words: <b id="refWordCount">0</b></span>
+              <button type="button" class="sample-btn" onclick="document.getElementById('referenceText').value=''; updateCounts();">Clear Reference</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-row">
+          <button type="button" id="btnGenerate" class="btn btn-primary" onclick="generateSummary()">
+            <span id="btnGenSpinner" class="spinner" style="display: none;"></span>
+            <span id="btnGenText">⚡ Generate Summary</span>
+          </button>
+          <button type="button" id="btnCompare" class="btn btn-secondary" onclick="compareAllModels()">
+            <span id="btnCompSpinner" class="spinner" style="display: none;"></span>
+            <span id="btnCompText">📊 Compare All 3 Models</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Output, ROUGE Metrics & Analysis -->
+      <section>
+        
+        <!-- Generated Summary Result Card -->
+        <div class="output-card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <h2 class="card-title">Generated Summary Output</h2>
+                <p class="card-subtitle" id="activeModelLabel">Model: BART CNN (Abstractive)</p>
+              </div>
+            </div>
+            <div class="btn-row" style="gap: 8px;">
+              <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;" onclick="copySummary()">📋 Copy</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;" onclick="downloadSummary()">💾 Download</button>
+            </div>
+          </div>
+
+          <!-- Metadata Bar -->
+          <div class="output-meta-bar" id="outputMetaBar" style="display: none;">
+            <div class="meta-tags">
+              <span>Words: <b id="resWordCount">0</b></span>
+              <span>Characters: <b id="resCharCount">0</b></span>
+              <span>Latency: <b id="resLatency">0.0s</b></span>
+            </div>
+            <div>
+              <span class="badge badge-tech" id="resCompressionBadge">0% Compression</span>
+            </div>
+          </div>
+
+          <!-- Summary Content -->
+          <div class="summary-text-box" id="summaryOutput">
+            <div class="summary-empty-state">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+              </svg>
+              <p>Your generated summary will appear here.<br>Select a model and click <b>Generate Summary</b> or <b>Compare All Models</b>.</p>
+            </div>
+          </div>
+
+          <!-- ROUGE Evaluation Section -->
+          <div class="rouge-section">
+            <div class="section-subtitle">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+              <span>ROUGE Evaluation Metrics</span>
+            </div>
+
+            <!-- Missing Reference Notice -->
+            <div id="rougeMissingNotice" class="rouge-missing-notice">
+              ℹ️ <b>ROUGE Notice:</b> No reference summary was provided. ROUGE scores (Recall, Precision, F1) require 
+              ground-truth reference text to measure n-gram overlap. Expand the reference section on the left to evaluate ROUGE.
+            </div>
+
+            <!-- Metric Cards (Shown when ROUGE is computed) -->
+            <div id="rougeMetricsGrid" class="rouge-cards-grid" style="display: none;">
+              <!-- ROUGE-1 -->
+              <div class="metric-card">
+                <div class="metric-name">ROUGE-1 (Unigrams)</div>
+                <div class="metric-f1" id="rouge1_f1">0.000</div>
+                <div class="metric-details">
+                  <span>P: <b id="rouge1_p">0.00</b></span>
+                  <span>R: <b id="rouge1_r">0.00</b></span>
+                  <span>F1: <b id="rouge1_f1_sm">0.00</b></span>
+                </div>
+              </div>
+
+              <!-- ROUGE-2 -->
+              <div class="metric-card">
+                <div class="metric-name">ROUGE-2 (Bigrams)</div>
+                <div class="metric-f1" id="rouge2_f1">0.000</div>
+                <div class="metric-details">
+                  <span>P: <b id="rouge2_p">0.00</b></span>
+                  <span>R: <b id="rouge2_r">0.00</b></span>
+                  <span>F1: <b id="rouge2_f1_sm">0.00</b></span>
+                </div>
+              </div>
+
+              <!-- ROUGE-L -->
+              <div class="metric-card">
+                <div class="metric-name">ROUGE-L (LCS)</div>
+                <div class="metric-f1" id="rougeL_f1">0.000</div>
+                <div class="metric-details">
+                  <span>P: <b id="rougeL_p">0.00</b></span>
+                  <span>R: <b id="rougeL_r">0.00</b></span>
+                  <span>F1: <b id="rougeL_f1_sm">0.00</b></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Extractive vs Abstractive Comparison Showcase -->
+          <div class="approach-comparison-box">
+            <div class="section-subtitle">
+              <span>Extractive vs Abstractive Summarization Insight</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              <b>Extractive (TextRank):</b> Directly scores, ranks, and extracts unaltered verbatim sentences from the source document.<br>
+              <b>Abstractive (BART / T5):</b> Uses Seq2Seq neural attention to paraphrase, synthesize, and generate novel sentences like a human reader.
+            </p>
+            <div class="approach-columns">
+              <div class="approach-col col-extractive">
+                <div class="approach-header">🌿 TextRank (Extractive)</div>
+                <div class="approach-preview" id="previewExtractive">
+                  Extracts top-ranked sentences directly from source without changing vocabulary. Run "Compare All Models" to inspect.
+                </div>
+              </div>
+              <div class="approach-col col-abstractive">
+                <div class="approach-header">🧠 BART / T5 (Abstractive)</div>
+                <div class="approach-preview" id="previewAbstractive">
+                  Constructs concise paraphrased summaries using transformer attention heads and language generation decoders.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- FULL WIDTH: Multi-Model Benchmark & Charts Section -->
+    <section class="card comparison-container" id="comparisonSection">
+      <div class="card-header">
+        <div class="card-title-wrap">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <div>
+            <h2 class="card-title">Model Comparison Benchmark: BART vs T5 vs TextRank</h2>
+            <p class="card-subtitle">Comprehensive evaluation across latency, word reduction, and ROUGE metrics</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="table-responsive">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Model Name</th>
+              <th>Type</th>
+              <th>Words</th>
+              <th>Compression</th>
+              <th>Inference Time</th>
+              <th>ROUGE-1 (F1)</th>
+              <th>ROUGE-2 (F1)</th>
+              <th>ROUGE-L (F1)</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Click <b>"Compare All 3 Models"</b> to execute simultaneous benchmark evaluation across BART, T5, and TextRank.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">ROUGE Metric Scores by Model (F1 Comparison)</div>
+          <div class="chart-wrapper">
+            <canvas id="rougeChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Inference Time (Seconds) & Output Word Count</div>
+          <div class="chart-wrapper">
+            <canvas id="performanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CNN / DailyMail Dataset Live Benchmark Explorer -->
+    <section class="dataset-box">
+      <div class="dataset-header">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700;">CNN / DailyMail Dataset Evaluation Samples</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            Test real benchmark articles from the CNN/DailyMail NLP corpus with authentic gold reference summaries.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="datasetSampleSelect" class="dataset-select" onchange="onDatasetSampleChange()">
+            <option value="0">CNN/DailyMail Sample #1: Aviation & Technology</option>
+            <option value="1">CNN/DailyMail Sample #2: Space Exploration & NASA</option>
+            <option value="2">CNN/DailyMail Sample #3: Global Health & Medical Research</option>
+          </select>
+          <button type="button" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.82rem;" onclick="loadSelectedDatasetSample()">
+            Load Article & Gold Summary
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p><b>NLP Capstone Project:</b> Text Summarization Using Transformer Models (BART, T5, TextRank) with ROUGE-1/2/L Evaluation</p>
+    <p style="margin-top: 4px; font-size: 0.75rem;">Developed with PyTorch, Hugging Face Transformers, Flask & Vanilla CSS</p>
+  </footer>
+
+  <!-- ======================================================================
+       FRONTEND JAVASCRIPT LOGIC
+       ====================================================================== -->
+  <script>
+    // Global State & Chart Instances
+    let rougeChartInstance = null;
+    let perfChartInstance = null;
+    let datasetSamplesCache = [];
+
+    // Preloaded Sample Articles
+    const SAMPLE_ARTICLES = {
+      cnn: {
+        text: `NASA's James Webb Space Telescope has captured stunning new images of the Ring Nebula, revealing unprecedented details of the dying star's final stages. The observations, made using the telescope's Near-Infrared Camera and Mid-Infrared Instrument, show intricate structures within the planetary nebula located approximately 2,500 light-years from Earth. Scientists say the high-resolution imagery exposes concentric rings created by stellar pulsations, as well as dense clumps of gas and dust ejected into space. The dying star at the center, a white dwarf, continues to illuminate the expanding shell of ionized gases. Astronomers emphasize that studying such nebulae helps researchers understand how stars like our Sun evolve, synthesize heavy elements, and seed the cosmos with organic molecules necessary for future planetary systems.`,
+        ref: `NASA's James Webb Space Telescope captured unprecedented detailed images of the Ring Nebula 2,500 light-years away. The observations reveal intricate concentric rings, gas clumps, and the central white dwarf, offering critical insights into stellar evolution and cosmic element distribution.`
+      },
+      ai_research: {
+        text: `Transformer neural networks have fundamentally transformed natural language processing since their introduction in 2017. Unlike recurrent architectures that process tokens sequentially, transformers utilize multi-head self-attention mechanisms to model relationships between words across arbitrary distances in parallel. Pretrained models such as BART and T5 employ sequence-to-sequence encoder-decoder architectures, enabling state-of-the-art performance on abstractive summarization, machine translation, and question answering. While extractive summarization methods like TextRank rely on graph centrality over sentence similarity matrices to select existing sentences, abstractive transformers learn to synthesize, rephrase, and compress complex concepts, closely emulating human writing. Recent research continues to focus on improving attention efficiency, context window lengths, and factual consistency in generated summaries.`,
+        ref: `Transformer architectures revolutionised NLP through multi-head self-attention that processes text in parallel. Sequence-to-sequence models like BART and T5 enable advanced abstractive summarization by synthesizing novel text, surpassing traditional extractive graph approaches like TextRank in fluency and compression.`
+      },
+      health: {
+        text: `A landmark clinical study published this week demonstrates that adhering to a Mediterranean-style diet combined with regular aerobic exercise significantly reduces the risk of cardiovascular events and cognitive decline in older adults. Researchers tracked more than 15,000 participants over a twelve-year period, monitoring dietary habits, physical activity levels, blood pressure, and neurological health. The findings indicated a 32 percent reduction in heart attacks and strokes, alongside a 28 percent lower incidence of mild cognitive impairment among individuals maintaining high dietary adherence. Experts highlight that diets rich in olive oil, whole grains, nuts, and leafy greens provide essential polyphenols and antioxidants that mitigate systemic inflammation and protect cellular integrity.`,
+        ref: `A 12-year clinical study with 15,000 participants found that a Mediterranean diet paired with aerobic exercise reduces cardiovascular events by 32 percent and cognitive decline by 28 percent due to anti-inflammatory antioxidants and healthy fats.`
+      }
+    };
+
+    // Initialize on DOM Load
+    document.addEventListener('DOMContentLoaded', () => {
+      initWordCounters();
+      initDragAndDrop();
+      fetchDatasetSamples();
+      checkBackendHealth();
+    });
+
+    // Check backend connectivity
+    async function checkBackendHealth() {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('backendStatusText').textContent = `Ready (${data.device.toUpperCase()})`;
+          document.getElementById('backendStatusBadge').classList.add('badge-status');
+        }
+      } catch (e) {
+        document.getElementById('backendStatusText').textContent = 'Backend Offline';
+        document.getElementById('backendStatusBadge').style.borderColor = 'var(--danger)';
+        document.getElementById('backendStatusBadge').style.color = 'var(--danger)';
+      }
+    }
+
+    // Word & Character Counter
+    function initWordCounters() {
+      const inputEl = document.getElementById('inputText');
+      const refEl = document.getElementById('referenceText');
+      inputEl.addEventListener('input', updateCounts);
+      refEl.addEventListener('input', updateCounts);
+    }
+
+    function updateCounts() {
+      const inputText = document.getElementById('inputText').value.trim();
+      const refText = document.getElementById('referenceText').value.trim();
+
+      const inputWords = inputText ? inputText.split(/\s+/).length : 0;
+      const refWords = refText ? refText.split(/\s+/).length : 0;
+
+      document.getElementById('inputWordCount').textContent = inputWords;
+      document.getElementById('inputCharCount').textContent = inputText.length;
+      document.getElementById('refWordCount').textContent = refWords;
+    }
+
+    function updateParamLabels() {
+      document.getElementById('minLenVal').textContent = document.getElementById('minLenSlider').value + ' words';
+      document.getElementById('maxLenVal').textContent = document.getElementById('maxLenSlider').value + ' words';
+    }
+
+    // Toggle Reference Body Accordion
+    function toggleReferenceBody() {
+      const body = document.getElementById('referenceBody');
+      const icon = document.getElementById('refToggleIcon');
+      if (body.classList.contains('collapsed')) {
+        body.classList.remove('collapsed');
+        icon.textContent = '▼';
+      } else {
+        body.classList.add('collapsed');
+        icon.textContent = '▶';
+      }
+    }
+
+    // Clear Text Inputs
+    function clearInput() {
+      document.getElementById('inputText').value = '';
+      updateCounts();
+    }
+
+    // Load Sample Texts
+    function loadSample(key) {
+      if (SAMPLE_ARTICLES[key]) {
+        document.getElementById('inputText').value = SAMPLE_ARTICLES[key].text;
+        document.getElementById('referenceText').value = SAMPLE_ARTICLES[key].ref;
+        updateCounts();
+        showToast('Sample article & reference loaded successfully!', 'info');
+      }
+    }
+
+    // File Drag and Drop / Upload
+    function initDragAndDrop() {
+      const dropzone = document.getElementById('fileDropzone');
+      const fileInput = document.getElementById('fileInput');
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.add('drag-active');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('drag-active');
+        }, false);
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) handleFile(files[0]);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+      });
+    }
+
+    function handleFile(file) {
+      if (!file.name.match(/\.(txt|md)$/i)) {
+        showToast('Please upload a plain text file (.txt or .md)', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('inputText').value = e.target.result;
+        updateCounts();
+        showToast(`Uploaded: ${file.name}`, 'success');
+      };
+      reader.readAsText(file);
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Fetch CNN/DailyMail Samples from Backend
+    async function fetchDatasetSamples() {
+      try {
+        const res = await fetch('/api/samples');
+        if (res.ok) {
+          const data = await res.json();
+          datasetSamplesCache = data.samples || [];
+          populateDatasetSelect();
+        }
+      } catch (err) {
+        console.warn('Backend samples not available yet, using fallback.');
+      }
+    }
+
+    function populateDatasetSelect() {
+      const sel = document.getElementById('datasetSampleSelect');
+      if (datasetSamplesCache.length > 0) {
+        sel.innerHTML = '';
+        datasetSamplesCache.forEach((sample, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = `Sample #${idx + 1}: ${sample.title || 'CNN/DailyMail Article'}`;
+          sel.appendChild(opt);
+        });
+      }
+    }
+
+    function loadSelectedDatasetSample() {
+      const idx = document.getElementById('datasetSampleSelect').value;
+      if (datasetSamplesCache[idx]) {
+        const sample = datasetSamplesCache[idx];
+        document.getElementById('inputText').value = sample.article;
+        document.getElementById('referenceText').value = sample.highlights;
+        updateCounts();
+        showToast(`Loaded CNN/DailyMail Sample #${parseInt(idx) + 1}`, 'success');
+      } else {
+        loadSample('cnn');
+      }
+    }
+
+    function onDatasetSampleChange() {
+      // Optional change handler
+    }
+
+    // Generate Single Summary
+    async function generateSummary() {
+      const text = document.getElementById('inputText').value.trim();
+      const referenceSummary = document.getElementById('referenceText').value.trim();
+      const model = document.querySelector('input[name="nlp_model"]:checked').value;
+      const minLength = parseInt(document.getElementById('minLenSlider').value);
+      const maxLength = parseInt(document.getElementById('maxLenSlider').value);
+
+      if (!text || text.length < 40) {
+        showToast('Please enter at least 2-3 sentences of text to summarize.', 'error');
+        return;
+      }
+
+      setLoading(true, 'generate');
+      updateActiveModelBadge(model);
+
+      try {
+        const response = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            model: model,
+            reference_summary: referenceSummary,
+            min_length: minLength,
+            max_length: maxLength
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Summarization failed on server.');
+        }
+
+        renderSingleResult(data, text);
+        showToast('Summary successfully generated!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast(`Error: ${err.message}`, 'error');
+      } finally {
+        setLoading(false, 'generate');
+      }
+    }
+
+    function updateActiveModelBadge(model) {
+      const label = document.getElementById('activeModelLabel');
+      if (model === 'bart') label.textContent = 'Model: BART CNN (Abstractive Transformer)';
+      else if (model === 't5') label.textContent = 'Model: T5 Transformer (Text-to-Text)';
+      else label.textContent = 'Model: TextRank (Extractive Graph-Based)';
+    }
+
+    function renderSingleResult(data, originalText) {
+      const summaryBox = document.getElementById('summaryOutput');
+      summaryBox.textContent = data.summary;
+
+      // Meta bar
+      const origWords = originalText.trim().split(/\s+/).length;
+      const sumWords = data.word_count || data.summary.trim().split(/\s+/).length;
+      const compression = origWords > 0 ? Math.max(0, Math.round(((origWords - sumWords) / origWords) * 100)) : 0;
+
+      document.getElementById('outputMetaBar').style.display = 'flex';
+      document.getElementById('resWordCount').textContent = sumWords;
+      document.getElementById('resCharCount').textContent = data.summary.length;
+      document.getElementById('resLatency').textContent = (data.execution_time_seconds || 0).toFixed(2) + 's';
+      document.getElementById('resCompressionBadge').textContent = `${compression}% Reduction`;
+
+      // Update ROUGE section
+      const rougeGrid = document.getElementById('rougeMetricsGrid');
+      const rougeNotice = document.getElementById('rougeMissingNotice');
+
+      if (data.rouge && data.rouge.rouge_computed) {
+        rougeNotice.style.display = 'none';
+        rougeGrid.style.display = 'grid';
+
+        document.getElementById('rouge1_f1').textContent = data.rouge.rouge1.f1.toFixed(3);
+        document.getElementById('rouge1_p').textContent = data.rouge.rouge1.precision.toFixed(2);
+        document.getElementById('rouge1_r').textContent = data.rouge.rouge1.recall.toFixed(2);
+        document.getElementById('rouge1_f1_sm').textContent = data.rouge.rouge1.f1.toFixed(2);
+
+        document.getElementById('rouge2_f1').textContent = data.rouge.rouge2.f1.toFixed(3);
+        document.getElementById('rouge2_p').textContent = data.rouge.rouge2.precision.toFixed(2);
+        document.getElementById('rouge2_r').textContent = data.rouge.rouge2.recall.toFixed(2);
+        document.getElementById('rouge2_f1_sm').textContent = data.rouge.rouge2.f1.toFixed(2);
+
+        document.getElementById('rougeL_f1').textContent = data.rouge.rougeL.f1.toFixed(3);
+        document.getElementById('rougeL_p').textContent = data.rouge.rougeL.precision.toFixed(2);
+        document.getElementById('rougeL_r').textContent = data.rouge.rougeL.recall.toFixed(2);
+        document.getElementById('rougeL_f1_sm').textContent = data.rouge.rougeL.f1.toFixed(2);
+      } else {
+        rougeNotice.style.display = 'block';
+        rougeGrid.style.display = 'none';
+      }
+
+      // Update comparison preview
+      if (data.model === 'textrank') {
+        document.getElementById('previewExtractive').textContent = data.summary;
+      } else {
+        document.getElementById('previewAbstractive').textContent = data.summary;
+      }
+    }
+
+    // Compare All 3 Models Benchmark
+    async function compareAllModels() {
+      const text = document.getElementById('inputText').value.trim();
+      const referenceSummary = document.getElementById('referenceText').value.trim();
+      const minLength = parseInt(document.getElementById('minLenSlider').value);
+      const maxLength = parseInt(document.getElementById('maxLenSlider').value);
+
+      if (!text || text.length < 40) {
+        showToast('Please enter at least 2-3 sentences of text to benchmark.', 'error');
+        return;
+      }
+
+      setLoading(true, 'compare');
+      showToast('Running benchmark across BART, T5, and TextRank...', 'info');
+
+      try {
+        const response = await fetch('/api/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            reference_summary: referenceSummary,
+            min_length: minLength,
+            max_length: maxLength
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Benchmark comparison failed.');
+        }
+
+        renderComparisonBenchmark(data);
+        showToast('All 3 models compared and benchmarked successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast(`Error: ${err.message}`, 'error');
+      } finally {
+        setLoading(false, 'compare');
+      }
+    }
+
+    function renderComparisonBenchmark(benchmarkData) {
+      const results = benchmarkData.results || [];
+      const tbody = document.getElementById('comparisonTableBody');
+      tbody.innerHTML = '';
+
+      const labels = [];
+      const rouge1Data = [];
+      const rouge2Data = [];
+      const rougeLData = [];
+      const latencyData = [];
+      const wordsData = [];
+
+      results.forEach(item => {
+        const tr = document.createElement('tr');
+        const badgeClass = item.type === 'Abstractive' ? 'badge-bart' : 'badge-extractive';
+
+        const r1 = item.rouge && item.rouge.rouge_computed ? item.rouge.rouge1.f1.toFixed(3) : 'N/A';
+        const r2 = item.rouge && item.rouge.rouge_computed ? item.rouge.rouge2.f1.toFixed(3) : 'N/A';
+        const rL = item.rouge && item.rouge.rouge_computed ? item.rouge.rougeL.f1.toFixed(3) : 'N/A';
+
+        tr.innerHTML = `
+          <td><b>${item.model_name}</b></td>
+          <td><span class="table-badge ${badgeClass}">${item.type}</span></td>
+          <td>${item.word_count}</td>
+          <td><span class="badge badge-tech">${item.compression_ratio}%</span></td>
+          <td>${item.latency_seconds.toFixed(2)}s</td>
+          <td style="color: #38bdf8; font-family: var(--font-mono); font-weight: 600;">${r1}</td>
+          <td style="color: #818cf8; font-family: var(--font-mono); font-weight: 600;">${r2}</td>
+          <td style="color: #c084fc; font-family: var(--font-mono); font-weight: 600;">${rL}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Chart data
+        labels.push(item.model_name);
+        rouge1Data.push(item.rouge && item.rouge.rouge_computed ? item.rouge.rouge1.f1 : 0);
+        rouge2Data.push(item.rouge && item.rouge.rouge_computed ? item.rouge.rouge2.f1 : 0);
+        rougeLData.push(item.rouge && item.rouge.rouge_computed ? item.rouge.rougeL.f1 : 0);
+        latencyData.push(item.latency_seconds);
+        wordsData.push(item.word_count);
+
+        // Set previews
+        if (item.model_id === 'textrank') {
+          document.getElementById('previewExtractive').textContent = item.summary;
+        } else if (item.model_id === 'bart') {
+          document.getElementById('previewAbstractive').textContent = item.summary;
+          // Set BART summary into output box as default view
+          renderSingleResult({
+            summary: item.summary,
+            model: 'bart',
+            word_count: item.word_count,
+            execution_time_seconds: item.latency_seconds,
+            rouge: item.rouge
+          }, document.getElementById('inputText').value);
+        }
+      });
+
+      // Update Charts
+      updateCharts(labels, rouge1Data, rouge2Data, rougeLData, latencyData, wordsData);
+
+      // Scroll to comparison section
+      document.getElementById('comparisonSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Chart.js Visualizations
+    function updateCharts(labels, r1, r2, rL, latency, words) {
+      // 1. ROUGE Comparison Bar Chart
+      const ctxRouge = document.getElementById('rougeChart').getContext('2d');
+      if (rougeChartInstance) rougeChartInstance.destroy();
+
+      rougeChartInstance = new Chart(ctxRouge, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'ROUGE-1 (Unigram F1)',
+              data: r1,
+              backgroundColor: 'rgba(56, 189, 248, 0.75)',
+              borderColor: '#38bdf8',
+              borderWidth: 1
+            },
+            {
+              label: 'ROUGE-2 (Bigram F1)',
+              data: r2,
+              backgroundColor: 'rgba(129, 140, 248, 0.75)',
+              borderColor: '#818cf8',
+              borderWidth: 1
+            },
+            {
+              label: 'ROUGE-L (LCS F1)',
+              data: rL,
+              backgroundColor: 'rgba(192, 132, 252, 0.75)',
+              borderColor: '#c084fc',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1.0,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#cbd5e1', font: { weight: '600' } }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // 2. Performance (Latency & Words) Mixed Chart
+      const ctxPerf = document.getElementById('performanceChart').getContext('2d');
+      if (perfChartInstance) perfChartInstance.destroy();
+
+      perfChartInstance = new Chart(ctxPerf, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Inference Time (s)',
+              data: latency,
+              backgroundColor: 'rgba(244, 63, 94, 0.75)',
+              borderColor: '#f43f5e',
+              borderWidth: 1,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Summary Word Count',
+              data: words,
+              type: 'line',
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.2)',
+              borderWidth: 2,
+              pointRadius: 4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: { display: true, text: 'Seconds', color: '#f43f5e' },
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#f43f5e' }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: { display: true, text: 'Words', color: '#10b981' },
+              grid: { drawOnChartArea: false },
+              ticks: { color: '#10b981' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#cbd5e1', font: { weight: '600' } }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Loading State Helper
+    function setLoading(isLoading, mode) {
+      const btnGen = document.getElementById('btnGenerate');
+      const btnComp = document.getElementById('btnCompare');
+      const genSpinner = document.getElementById('btnGenSpinner');
+      const compSpinner = document.getElementById('btnCompSpinner');
+      const genText = document.getElementById('btnGenText');
+      const compText = document.getElementById('btnCompText');
+
+      if (isLoading) {
+        btnGen.disabled = true;
+        btnComp.disabled = true;
+        if (mode === 'generate') {
+          genSpinner.style.display = 'inline-block';
+          genText.textContent = 'Generating...';
+        } else {
+          compSpinner.style.display = 'inline-block';
+          compText.textContent = 'Benchmarking...';
+        }
+      } else {
+        btnGen.disabled = false;
+        btnComp.disabled = false;
+        genSpinner.style.display = 'none';
+        compSpinner.style.display = 'none';
+        genText.textContent = '⚡ Generate Summary';
+        compText.textContent = '📊 Compare All 3 Models';
+      }
+    }
+
+    // Copy Summary to Clipboard
+    function copySummary() {
+      const text = document.getElementById('summaryOutput').textContent;
+      if (!text || text.includes('Your generated summary will appear here')) {
+        showToast('No summary to copy.', 'error');
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Summary copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy to clipboard.', 'error');
+      });
+    }
+
+    // Download Summary as .txt File
+    function downloadSummary() {
+      const text = document.getElementById('summaryOutput').textContent;
+      if (!text || text.includes('Your generated summary will appear here')) {
+        showToast('No summary to download.', 'error');
+        return;
+      }
+      const model = document.querySelector('input[name="nlp_model"]:checked').value;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `summary_${model}_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('Summary downloaded as text file.', 'success');
+    }
+  </script>
+</body>
+</html>
