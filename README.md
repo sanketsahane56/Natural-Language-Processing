@@ -71,7 +71,7 @@ pip install transformers torch sentencepiece rouge-score nltk pandas matplotlib 
 
 This project is developed for educational purposes to understand Natural Language Processing, transformer models, and automatic text summarization.
 
-## 👨‍💻 Author
+## 👨‍💻 Developed By
 
 **Sanket Vijay Sahane**
 
